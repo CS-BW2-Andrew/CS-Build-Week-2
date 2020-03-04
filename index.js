@@ -122,7 +122,7 @@ async function game() {
             // Update the room ID
             await storage.setItem('Shop', current_room_id);
             // Confirm update was successful
-            console.log(`Made it to the shop! \n`)
+            console.log(`Made it to the shop! \n`);
 
             // If the player has any treasure ("encumbrance") to sell...
             for (let i = 0; i < parseInt(player.encumbrance); i++) {
@@ -132,8 +132,22 @@ async function game() {
                     confirm: 'yes'
                 })
                 // Confirm the sell was successful
-                console.log(`Sold treasure! \n`)
+                console.log(`Sold treasure! \n`);
             }
+        }
+
+        // If we made it to the well...
+        if (current_room.description.includes('EXAMINE WELL')) {
+            // Update the room ID
+            await storage.setItem('Well', current_room_id);
+            // Confirm update was successful
+            console.log(`Made it to the well! \n`);
+            // Call the endpoint to obtain our clue
+            await callEndpoint('adv/examine', 'post', {
+                name: 'item'
+            })
+            // Make sure we were indeed successful
+            console.log('Got our clue from the well!');
         }
 
         // ** Fifth: now take care of the less important (random) room traversal logic ***
