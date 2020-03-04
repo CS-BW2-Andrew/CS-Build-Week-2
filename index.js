@@ -5,6 +5,8 @@ require('dotenv').config();
 const fetch = require('node-fetch');
 // Stores JSON data in the file system (no database needed)
 const storage = require('node-persist');
+// Used to hash a proof with specified criteria
+const shajs = require('sha.js');
 
 // *** Second: create the helper functions ***
 
@@ -44,6 +46,50 @@ function change_direction(direction) {
     else if (direction === 's') return 'n';
     else if (direction === 'e') return 'w';
     else if (direction === 'w') return 'e';
+}
+
+// Proof validation
+function validate_proof(last_proof, proof, difficulty) {
+    // Use the sha256 hash library to update current/last proof, then make it hexadecimal
+    let hash = shajs('sha256').update(`${last_proof}${proof}`).digest('hex');
+    // Return (repeat) an amount of zeroes that match the given difficulty level
+    return hash.substring(0, difficulty) === '0'.repeat(difficulty);
+}
+
+// Workhorse function for the mining process
+async function miner() {
+    // While it's true there is stuff to be mined...
+    while (true) {
+        // Get the last block from the endpoint
+        let last_block = await callEndpoint('bc/last_proof', 'get');
+        // Parse the attached .proof and assign to a variable
+        let last_proof = parseInt(last_block.proof);
+        // Grab the assigned difficulty level
+        let difficulty = last_block.difficulty;
+        // Assign last_proof to proof
+        let proof = last_proof;
+        // Make placeholder variable used to confirm proof is valid
+        let is_valid = false;
+        // Print to console so we know it works
+        console.log('Please hold while we validate the proof...');
+        // While we *do* have a valid proof...
+        while (!is_valid) {
+            // Increment proof +1
+            proof += 1;
+            // Assign the validation function to is_valid
+            is_valid = validate_proof(last_proof, proof, difficulty);
+        }
+        // Confirm validation was successful
+        console.log('Validation complete. Proof is ', proof);
+        // Call / post to the /mine endpoint, pass in our proof, assign to mine
+        let mine = await callEndpoint('bc/mine', 'post', {
+            proof
+        })
+        // If we received a status 200, confirm the proof was mined
+        if (mine.status === 200) console.log('Mined the proof!');
+        // Exit the function
+        break;
+    }
 }
 
 // *** Third: begin the game ***
@@ -148,6 +194,8 @@ async function game() {
             })
             // Make sure we were indeed successful
             console.log('Got our clue from the well!');
+            // Call the miner function
+            miner();
         }
 
         // ** Fifth: now take care of the less important (random) room traversal logic ***
