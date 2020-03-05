@@ -182,21 +182,26 @@ async function game() {
             }
         }
 
-        // If we made it to the well...
-        if (current_room.description.includes('EXAMINE WELL')) {
-            // Update the room ID
-            await storage.setItem('Well', current_room_id);
-            // Confirm update was successful
-            console.log(`Made it to the well! \n`);
-            // Call the endpoint to obtain our clue
-            await callEndpoint('adv/examine', 'post', {
-                name: 'item'
-            })
-            // Make sure we were indeed successful
-            console.log('Got our clue from the well!');
-            // Call the miner function
+        // Mine the coin from the room produced from well
+        if (current_room.room_id === 463) {
             miner();
         }
+
+        // // If we made it to the well...
+        // if (current_room.description.includes('EXAMINE WELL')) {
+        //     // Update the room ID
+        //     await storage.setItem('Well', current_room_id);
+        //     // Confirm update was successful
+        //     console.log(`Made it to the well! \n`);
+        //     // Call the endpoint to obtain our clue
+        //     // await callEndpoint('adv/examine', 'post', {
+        //     //     name: 'item'
+        //     // })
+        //     // Make sure we were indeed successful
+        //     console.log('Got our clue from the well!');
+        //     // Call the miner function
+        //     break;
+        // }
 
         // ** Fifth: now take care of the less important (random) room traversal logic ***
 
